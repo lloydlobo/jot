@@ -32,8 +32,9 @@ where
         write!(self.writer, "{value}")
     }
 
+    /// First time prints when setting up jot with local repo.
     fn println(&mut self, value: &str) -> io::Result<()> {
-        todo!()
+        writeln!(self.writer, "{value}")
     }
 }
 

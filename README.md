@@ -10,7 +10,7 @@ A fork of [eureka](https://github.com/simeg/eureka).
 
 <!-- https://jojozhuang.github.io/tutorial/mermaid-cheat-sheet/  -->
 
-### Level 1
+### Mermaid Flowchart
 
 ```mermaid
 graph TD;
@@ -18,13 +18,11 @@ graph TD;
 subgraph run
     A[(fn: main: bin/jot.rs)]==>A1[fn: clap::Command::new];
     A1-->A11(fn: Jot::new);
-    A1-->A12(struct: JotOptions);
-    A11-->A2(fn: jot.run opts);
-    A12-->A2;
-    A2-->B;
+    A11-->A2(fn: jot.run opts)-->B;
+    A1-->A12(struct: JotOptions)-->A2;
     B[(fn: run: lib.rs)] ==> |if: opts.clear_config|B1[fn: Jot::clear_config];
-    B==>|if: opts.view|B2[fn: Jot::open_jot_file];
     B==>B3>if: fn: Jot::is_config_missing];
+    B==>|if: opts.view|B2[fn: Jot::open_jot_file];
     B3-->B31(is true);
     B3-->B32(is false);
 end
@@ -54,27 +52,52 @@ subgraph librs if cfg missing config read repo loop
 end
 
 subgraph success ask for jot
-    B31A-->|is false|E;
     B32-->E([fn: ask_for_jot lib.rs]);
-    D11-->|setup completed|E;
-    %% have no summary from user
-    E-->F(var: jot_summary = String::new);
-    F-->G;
-    G>while: fn: jot_summary.is_empty]-.is true.->G1;
-    %% TODO: Input header
-    G1(fn Jot::printer.input_header);
-    G1-.->|fn: Printer::println_styled<br>fn: Printer::writer.flush|G11;
-    G11(var = Jot::reader.read_input);
-
-    G11-.->F;
-    G-->H(var: repo_path = Jot::cm.config_read Repo);
-
     %% Got summary from user
     %% Open editor then, add, commit and push to git
     H-->I([fn: Jot::program_opener<br>.open_editor 'repo_path/README.md' <br>.and Jot::git_add_commit_push jot_summary]);
+    B31A-->|is false|E;
+    D11-->|setup completed|E;
+    %% have no summary from user
+    E-->F(var: jot_summary = String::new)-->G>while: fn: jot_summary.is_empty]-.is true.->G1(fn Jot::printer.input_header);
+    G-->H(var: repo_path = Jot::cm.config_read Repo)-.->|TODO:checkout_branch in gitrs|TODO-.->H;
+    G1-.->|fn: Printer::println_styled<br>fn: Printer::writer.flush|G11;
+    G11(var = Jot::reader.read_input)-.->F;
 end
 
 %%classDef green fill:#9f6,stroke:#ccc,stroke-width:2px
 classDef orange fill:#f96,stroke:#ccc,stroke-width:2px
 class E,I orange
+```
+
+## Setup
+
+### Path
+
+```bash
+$ jot
+############################################################
+####                  First Time Setup                  ####
+############################################################
+
+This tool requires you to have a repository with a README.md
+in the root folder. The markdown file is where your jots
+will be stored.
+Once first time setup has completed, simply run Jot again
+to start jotting down your snippets, haiku, tips & tricks.
+
+Absolute path to your repository
+> /$HOME/path/to/repository/
+```
+
+-   `user_input` - path `/$HOME/path/to/your/repository/`
+-   Links and Writes `user_input` `Repo` path to config in `~/.config/jot/config.json`.
+
+### Jot Summary
+
+```bash
+$ jot
+>> Jot summary
+> Hello, world!
+Adding and committing you new jot to main..
 ```

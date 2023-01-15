@@ -179,6 +179,12 @@ where
 
     /// * `is_absolute()` - Returns `true` if the `Path` is absolute, i.e., if it is independent of
     ///   the current directory.
+    ///
+    /// * On Unix, a path is absolute if it starts with the root, so `is_absolute` and [`has_root`]
+    ///   are equivalent.
+    ///
+    /// * `user_input` - path `/$HOME/path/to/your/repository/`
+    /// * Links and Writes `user_input` `Repo` path to config in `~/.config/jot/config.json`.
     fn setup_repo_path(&mut self) -> io::Result<()> {
         'prompt: loop {
             self.printer.input_header("Absolute path to your jot repository")?;
@@ -190,6 +196,7 @@ where
             }
 
             let path = Path::new(user_input);
+            // Writes config to `~/.config/jot/config.json
             if path.is_absolute() {
                 break 'prompt self.cm.config_write(Repo, path.display().to_string());
             }
