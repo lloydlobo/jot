@@ -30,7 +30,7 @@ B312-.->C([loop]);
 C-->|fn: Jot::reader.read_input|C1(var: user_input);
 C1-->C11>if: fn: user_input.is_empty];
 C11-.->|is true: continue|C;
-C11-->|is false: fn: Path::new user_input|D(var:path);
-D-->D1>if fn: path.is_absolute]-->D11(is true)-->TODO;
+C11-->|is false: fn: Path::new user_input|D(var:path)-->D1>if fn: path.is_absolute];
 D1-.->|is false: Error|C;
+D1-->|is true:|D11(break: fn: Jot.cm.config_write)-->|setup completed|B321;
 ```
