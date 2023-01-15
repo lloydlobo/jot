@@ -47,7 +47,7 @@ fn main() -> anyhow::Result<()> {
         )
         .get_matches();
 
-    dbg!(&cli_flags);
+    // dbg!(&cli_flags);
 
     let stdio = io::stdin(); // Constructs a new handle to the standard input of the current process.
     let input = stdio.lock(); // Locks this handle to the standard input stream, returning a readable guard.
@@ -67,7 +67,7 @@ fn main() -> anyhow::Result<()> {
         view: cli_flags.contains_id(ARG_VIEW),
     };
 
-    dbg!(&opts);
+    // dbg!(&opts);
 
     match jot.run(opts) {
         Ok(_) => Ok(()),

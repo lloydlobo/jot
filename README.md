@@ -55,19 +55,26 @@ end
 
 subgraph success ask for jot
     B31A-->|is false|E;
-    B32-->E[fn: ask_for_jot lib.rs];
+    B32-->E([fn: ask_for_jot lib.rs]);
     D11-->|setup completed|E;
-
     %% have no summary from user
     E-->F(var: jot_summary = String::new);
     F-->G;
     G>while: fn: jot_summary.is_empty]-.is true.->G1;
-    G1(fn Jot::printer.input_header)-.->G11(var = Jot::reader.read_input);
+    %% TODO: Input header
+    G1(fn Jot::printer.input_header);
+    G1-.->|fn: Printer::println_styled<br>fn: Printer::writer.flush|G11;
+    G11(var = Jot::reader.read_input);
+
     G11-.->F;
     G-->H(var: repo_path = Jot::cm.config_read Repo);
 
     %% Got summary from user
     %% Open editor then, add, commit and push to git
-    H-->I[fn: Jot::program_opener<br>.open_editor 'repo_path/README.md' <br>.and Jot::git_add_commit_push jot_summary];
+    H-->I([fn: Jot::program_opener<br>.open_editor 'repo_path/README.md' <br>.and Jot::git_add_commit_push jot_summary]);
 end
+
+%%classDef green fill:#9f6,stroke:#ccc,stroke-width:2px
+classDef orange fill:#f96,stroke:#ccc,stroke-width:2px
+class E,I orange
 ```
