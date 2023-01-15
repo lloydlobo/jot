@@ -32,8 +32,8 @@ end
 %% Lead to fn if config_read
 subgraph librs if cfg missing dir doesnt create dir
     B31-->B31B(if fn: !Jot::cm.config_dir_exists)-->|is true|B3A[fn: cm.config_dir_create];
-    B3A-->B3AA(self.config_dir_path<br>.and_then<br>fs::create_dir_all);
-    B3AA-->B3AB(fn Jot.resolve_xdg_config_home<br>.or_else fn: home_dir.join'.config.dot');
+    B3A-->B3AA(self.config_dir_path.and_then fs::create_dir_all);
+    B3AA-->B3AB(fn Jot.resolve_xdg_config_home .or_else fn: home_dir.join'.config.dot');
     B3AB-.->|err|B3AB2(Failed to resolve $HOME dir);
     B3AB-->|ok|B3AB1(PathBuf);
 end
@@ -54,27 +54,20 @@ subgraph librs if cfg missing config read repo loop
 end
 
 subgraph success ask for jot
-B31A-->|is false|B32A;
-B32-->B32A[(fn: ask_for_jot)];
-D11-->|setup completed|B32A;
-end
+    B31A-->|is false|E;
+    B32-->E[fn: ask_for_jot lib.rs];
+    D11-->|setup completed|E;
 
-```
+    %% have no summary from user
+    E-->F(var: jot_summary = String::new);
+    F-->G;
+    G>while: fn: jot_summary.is_empty]-.is true.->G1;
+    G1(fn Jot::printer.input_header)-.->G11(var = Jot::reader.read_input);
+    G11-.->F;
+    G-->H(var: repo_path = Jot::cm.config_read Repo);
 
-### Level 2
-
-```mermaid
-graph TD;
-A[(fn: ask_for_jot lib.rs)] --> B(var: jot_summary = String::new);
-B-->C;
-subgraph EMPTY SUMMARY
-C>while: fn: jot_summary.is_empty]-.is true.->C1;
-C1(fn Jot::printer.input_header)-.->C11(var = Jot::reader.read_input);
-end
-C11-.->B;
-C-->D(var: repo_path = Jot::cm.config_read Repo);
-%% Open editor then, add, commit and push to git
-subgraph GOT SUMMARY
-D-->E[fn: Jot::program_opener<br>.open_editor 'repo_path/README.md' <br>.and Jot::git_add_commit_push jot_summary];
+    %% Got summary from user
+    %% Open editor then, add, commit and push to git
+    H-->I[fn: Jot::program_opener<br>.open_editor 'repo_path/README.md' <br>.and Jot::git_add_commit_push jot_summary];
 end
 ```
