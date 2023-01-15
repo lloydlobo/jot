@@ -35,7 +35,7 @@ subgraph librs if cfg missing dir doesnt create dir
     B3A-->B3AA(self.config_dir_path<br>.and_then<br>fs::create_dir_all);
     B3AA-->B3AB(fn Jot.resolve_xdg_config_home<br>.or_else fn: home_dir.join'.config.dot');
     B3AB-.->|err|B3AB2(Failed to resolve $HOME dir);
-    B3AB-.->|ok|B3AB1(PathBuf);
+    B3AB-->|ok|B3AB1(PathBuf);
 end
 
 B3AB1-->|success: created dir|B31A;
@@ -78,15 +78,3 @@ subgraph GOT SUMMARY
 D-->E[fn: Jot::program_opener<br>.open_editor 'repo_path/README.md' <br>.and Jot::git_add_commit_push jot_summary];
 end
 ```
-
-let repo_path = self.cm.config_read(Repo)?;
-
-self.program_opener
-.open_editor(&format!("{}/README.md", &repo_path))
-.and(self.git_add_commit_push(jot_summary))
-
-subgraph Z
-od>Odd shape]-- Two line<br/>edge comment --> ro
-di{Diamond with <br/> line break} -.-> ro(Rounded<br>square<br>shape)
-di==>ro2(Rounded square shape)
-end
