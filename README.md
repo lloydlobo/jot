@@ -8,23 +8,29 @@ A fork of [eureka](https://github.com/simeg/eureka).
 
 ## Structure
 
+<!-- https://jojozhuang.github.io/tutorial/mermaid-cheat-sheet/  -->
+
 ```mermaid
 graph TD;
 
-main --> clap::Command::new;
-clap::Command::new --> Jot::new;
-clap::Command::new --> JotOptions;
-Jot::new --> run;
-JotOptions --> run;
+A((fn: main: bin/jot.rs))==>A1[fn: clap::Command::new];
+A1-->A11(fn: Jot::new);
+A1-->A12(struct: JotOptions);
+A11-->|fn: jot.run opts|B((fn: run: lib.rs));
+A12-->|fn: jot.run opts|B;
 
-run --> opts.clear_config;
-run --> opts.view;
-run --> opts.is_config_missing;
-run --> ask_for_jot;
-opts.is_config_missing --> cm.config_dir_exists -->  cm.config_dir_create;
-opts.is_config_missing --> cm.config_read._is_error -->  setup_repo_path;
-
-setup_repo_path --> loop --> Printer::input_header --> TODO;
+B==>|if: opts.clear_config|B1[fn: Jot::clear_config];
+B==>|if: opts.view|B2[fn: Jot::open_jot_file];
+B==>B3>if: fn: Jot::is_config_missing];
+B3-->B31(is true);
+B3-->B32(is false)-->B321(fn: ask_for_jot);
+B31-->|if fn: Jot::cm.config_dir_exists|B311[cm.config_dir_create];
+B31-->|if fn: Jot::cm.config_read Repo is_error|B312[setup_repo_path];
+B312-.->C([loop]);
+C-->|fn: Jot::reader.read_input|C1(var: user_input);
+C1-->C11>if: fn: user_input.is_empty];
+C11-.->|is true: continue|C;
+C11-->|is false: fn: Path::new user_input|D(var:path);
+D-->D1>if fn: path.is_absolute]-->D11(is true)-->TODO;
+D1-.->|is false: Error|C;
 ```
-
--   TODO: How to add comment on mermaid lines.

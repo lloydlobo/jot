@@ -182,14 +182,16 @@ where
     fn setup_repo_path(&mut self) -> io::Result<()> {
         'prompt: loop {
             self.printer.input_header("Absolute path to your jot repository")?;
+
             let user_input: &String = &self.reader.read_input()?;
 
             if user_input.is_empty() {
-                continue 'prompt;
+                continue 'prompt; // next iteration.
             }
 
             let path = Path::new(user_input);
-
+            // Returns `true` if the `Path` is absolute,
+            // i.e., if it is independent of the current directory.
             if path.is_absolute() {
                 break 'prompt self.cm.config_write(Repo, path.display().to_string());
             }
