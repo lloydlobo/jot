@@ -14,14 +14,13 @@ A fork of [eureka](https://github.com/simeg/eureka).
 
 ```mermaid
 graph TD;
-subgraph 1 mainrs
+
+subgraph run
     A[(fn: main: bin/jot.rs)]==>A1[fn: clap::Command::new];
     A1-->A11(fn: Jot::new);
     A1-->A12(struct: JotOptions);
     A11-->A2(fn: jot.run opts);
     A12-->A2;
-end
-subgraph 2 librs fn run
     A2-->B;
     B[(fn: run: lib.rs)] ==> |if: opts.clear_config|B1[fn: Jot::clear_config];
     B==>|if: opts.view|B2[fn: Jot::open_jot_file];
@@ -31,8 +30,8 @@ subgraph 2 librs fn run
 end
 
 %% Lead to fn if config_read
-subgraph librs is missig create dir
-    B31-->B31B(if fn: Jot::cm.config_dir_exists)-->B3A[fn: cm.config_dir_create];
+subgraph librs if cfg missing dir doesnt create dir
+    B31-->B31B(if fn: !Jot::cm.config_dir_exists)-->|is true|B3A[fn: cm.config_dir_create];
     B3A-->B3AA(self.config_dir_path<br>.and_then<br>fs::create_dir_all);
     B3AA-->B3AB(fn Jot.resolve_xdg_config_home<br>.or_else fn: home_dir.join'.config.dot');
     B3AB-.->|err|B3AB2(Failed to resolve $HOME dir);
@@ -41,8 +40,9 @@ end
 
 B3AB1-->|success: created dir|B31A;
 
-subgraph librs is missing config read loop
-    B31-->B31A(if fn: Jot::cm.config_read Repo is_error)-->C;
+subgraph librs if cfg missing config read repo loop
+    B31B-->|is false|B31A;
+    B31A(if fn: Jot::cm.config_read Repo is_error)-->|is true|C;
     %% Get user input for repository path
     C[setup_repo_path]-->|fn: Jot::reader.read_input|C1(var: user_input);
     C1-->C11>if: fn: user_input.is_empty];
@@ -52,18 +52,14 @@ subgraph librs is missing config read loop
     D(var:path)-->D1>if fn: path.is_absolute];
     D1-->|is true:|D11(break: fn: Jot.cm.config_write);
 end
-subgraph 3 librs success ask for jot
+
+subgraph success ask for jot
+B31A-->|is false|B32A;
 B32-->B32A[(fn: ask_for_jot)];
 D11-->|setup completed|B32A;
 end
 
 ```
-
-        self.resolve_xdg_config_home()
-            .or_else(|| Some(home_dir().unwrap().join(".config").join("jot")))
-            .ok_or_else(|| {
-                io::Error::new(ErrorKind::NotFound, "Could not resolve your $HOME directory")
-            })
 
 ### Level 2
 
