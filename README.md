@@ -48,50 +48,51 @@ Adding and committing you new jot to main..
 graph TD;
 
 %%subgraph main rs main run
-    A[(fn: main: bin/jot.rs)]==>A1[fn: clap::Command::new];
-    A1-->A11(fn: Jot::new);
-    A11-->A2(fn: jot.run opts)-->B;
-    A1-->A12(struct: JotOptions)-->A2;
-    B[(fn: run: lib.rs)] ==> |if: opts.clear_config|B1[fn: Jot::clear_config];
-    B==>B3>if: fn: Jot::is_config_missing];
-    B==>|if: opts.view|B2[fn: Jot::open_jot_file];
-    B3-->B31(is true);
-    B3-->B32(is false);
+A[("main() bin/jot.rs")]==>A1["clap::Command::new()"];
+    A1-->A11("let mut jot = Jot::new()");
+    A11-->A2("jot.run(opts)")-->B;
+    A1-->A12("let opts = JotOptions{..}")-->A2;
+    B[("main.rs<br>jot.run(opts)<br>lib.rs")] ==> BCLEARCFG;
+    B===>BCFGMISS>"if Jot::is_config_missing()"];
+    BCLEARCFG>"if opts.clear_config()"]-->|true|BCLEARCFGfn["Jot::clear_config()"];
+    B==>BVIEW>"if opts.view()"]-->|true|BVIEWfn["fn: Jot::open_jot_file()"];
+    BCFGMISS-->|true|B31B;
+    BCFGMISS-->|false|E;
 %%end
 
 %% Lead to fn if config_read
 %%subgraph lib rs if cfg missing dir doesnt create dir
-    B31-->B31B>if: fn: Jot::cm.config_dir_exists == false]-->|is true|B3A;
-    B3A[fn: cm.config_dir_create];
-    B3A-->B3AA(self.config_dir_path<br>.and_then fs::create_dir_all);
-    B3AA-->B3AB(fn Jot.resolve_xdg_config_home<br>.or_else fn: home_dir.join'.config.dot');
-    B3AB-.->|Err|B3AB2(Failed to resolve $HOME dir);
-    B3AB-->|Ok|B3AB1(PathBuf);
-%%end
-
-B3AB1-->|success: created dir|B31A;
-
-%%subgraph lib rs if cfg missing config read repo loop
+    B31B>"if !Jot::cm.config_dir_exists()"]-->|is true|B3A;
+    B3A["Jot::cm.config_dir_create()"];
+    B3A-->B3AA("CM::cm::config_dir_path().and_then(fs::create_dir_all)");
+    B3AA-->B3AB("CM::cm::resolve_xdg_config_home()<br>.or_else(|| Some(home_dir()?<br>.join('.config').join('jot')))");
+    B3AB-.->|Err|B3AB2(".ok_or_else(|| ErrorKind::NotFound,<br>'unresolved $HOME directory')");
+    B3AB-->|Ok|B3AB1("PathBuf: `~/.config/config.json`");
+    B3AB1-->|success: created dir|B31A;
     B31B-->|is false|B31A;
-    B31A>if fn: Jot::cm.config_read Repo is_error]-->|is true|C;
+    B31A>"if Jot::cm.config_read(Repo).is_error()"]-->|is true|CSetupRepo;
+%%end
+%%subgraph lib rs if cfg missing config read repo loop
     %% Get user input for repository path
-    C[setup_repo_path]-->|fn: Jot::reader.read_input|C1(var: user_input);
-    C1-->C11>if: fn: user_input.is_empty];
-    C11-.->|is true: continue|C;
-    C11-->|is false: fn: Path::new user_input|D;
-    D1-.->|is false: Error|C;
-    D(var:path)-->D1>if fn: path.is_absolute];
-    D1-->|is true:|D11(break: fn: Jot.cm.config_write);
+    CSetupRepo["Jot::setup_repo_path()?"];
+    CSetupRepo-->|"'prompt: loop<br>Jot::printer.input_header('Absolute path jot repo')<br> let user_input = Jot::reader.read_input() <br> R::read_input()"|C11;
+    C11>"if user_input.is_empty()"];
+    C11-..->|"true: continue 'prompt loop"|CSetupRepo;
+    C11-->|"false: let path = Path::new(user_input)"|D1;
+
+    D1>"if  path.is_absolute()"];
+    D1-.->|"false: Error"|CSetupRepo;
+    D1-->|"true:"|D11("break 'prompt <br> Jot::cm.config_write(Repo, path.display())");
 %%end
 
 %%subgraph IMPLJOT
     %% Main happy path conjunction
-    B31A-->|is false|E;
-    D11-->|setup completed|E;
+    B31A-->|"false"|E;
+    D11-->|"setup completed"|E;
 %%end
 
 %%subgraph lib rs success ask for jot summary
-    B32-->E((fn: ask_for_jot lib.rs))-->FvarJotSumary;
+    E(("Jot::ask_for_jot() lib.rs"))-->FvarJotSumary;
     %% have no summary from user
     FvarJotSumary(var: jot_summary =<br> String::new)==>GWhileLoop;
     %% WHILE LOOP
