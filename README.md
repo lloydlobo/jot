@@ -62,37 +62,51 @@ A[("main() bin/jot.rs")]==>A1["clap::Command::new()"];
 
 %% Lead to fn if config_read
 %%subgraph lib rs if cfg missing dir doesnt create dir
-    B31B>"if !Jot::cm.config_dir_exists()"]-->|is true|B3A;
-    B3A["Jot::cm.config_dir_create()"];
-    B3A-->B3AA("CM::cm::config_dir_path().and_then(fs::create_dir_all)");
-    B3AA-->B3AB("CM::cm::resolve_xdg_config_home()<br>.or_else(|| Some(home_dir()?<br>.join('.config').join('jot')))");
-    B3AB-.->|Err|B3AB2(".ok_or_else(|| ErrorKind::NotFound,<br>'unresolved $HOME directory')");
+    B31B>"if !Jot::cm.config_dir_exists()"];
+    B31B-->|"true:<br>
+        Jot::cm.config_dir_create()<br><br>
+        CM::cm::config_dir_path()<br>
+        .and_then(fs::create_dir_all)
+        "|B3AB;
+    B3AB("CM::cm::resolve_xdg_config_home()<br>
+        .or_else(|| Some(home_dir()?<br>
+        .join('.config').join('jot')))
+        ");
+    B3AB-.->|Err|B3AB2(".ok_or_else(|| ErrorKind::NotFound,<br>
+        'unresolved $HOME directory')
+        ");
     B3AB-->|Ok|B3AB1("PathBuf: `~/.config/config.json`");
     B3AB1-->|success: created dir|B31A;
     B31B-->|is false|B31A;
     B31A>"if Jot::cm.config_read(Repo).is_error()"]-->|is true|CSetupRepo;
 %%end
 %%subgraph lib rs if cfg missing config read repo loop
-    %% Get user input for repository path
-    CSetupRepo["Jot::setup_repo_path()?"];
-    CSetupRepo-->|"'prompt: loop<br>Jot::printer.input_header('Absolute path jot repo')<br> let user_input = Jot::reader.read_input() <br> R::read_input()"|C11;
+%% Get user input for repository path
+
+    D1-."false: <br>Error".->CSetupRepo;
+    C11-."
+        true: <br>
+        continue 'prompt loop
+        "..-> CSetupRepo["Jot::setup_repo_path()?"];
+    CSetupRepo-->|"'prompt: loop<br>
+        Jot::printer.input_header('Absolute path jot repo')<br>
+        let user_input = Jot::reader.read_input() <br>
+        R::read_input()
+        "|C11;
     C11>"if user_input.is_empty()"];
-    C11-..->|"true: continue 'prompt loop"|CSetupRepo;
-    C11-->|"false: let path = Path::new(user_input)"|D1;
-
-    D1>"if  path.is_absolute()"];
-    D1-.->|"false: Error"|CSetupRepo;
-    D1-->|"true:"|D11("break 'prompt <br> Jot::cm.config_write(Repo, path.display())");
-%%end
-
-%%subgraph IMPLJOT
-    %% Main happy path conjunction
+    C11-->|"false:<br>let path = Path::new(user_input)"|D1;
+    D1>"if path.is_absolute()"];
+    D1-->|"true:<br>
+        break 'prompt <br>
+        Jot::cm.config_write(Repo, path.display()) <br>
+        setup completed
+        "|E;
     B31A-->|"false"|E;
-    D11-->|"setup completed"|E;
 %%end
+
 
 %%subgraph lib rs success ask for jot summary
-    E(("Jot::ask_for_jot() lib.rs"))-->FvarJotSumary;
+    E{{"Jot::ask_for_jot() lib.rs"}}-->FvarJotSumary;
     %% have no summary from user
     FvarJotSumary(var: jot_summary =<br> String::new)==>GWhileLoop;
     %% WHILE LOOP
@@ -105,20 +119,28 @@ A[("main() bin/jot.rs")]==>A1["clap::Command::new()"];
 %%subgraph lib rs success ask for jot repo path
     GWhileLoop==>|false: is_empty, got summary|HRepoPath;
     HRepoPath(var: repo_path = Jot::cm.config_read Repo);
-    HRepoPath==>HJOTgitinitrepo(fn: Jot::git.init repo_path <br>   .map_err _git_err_ Error::new<br>ErrorKind::InvalidInput, git_err);
+    HRepoPath==>HJOTgitinitrepo("Jot::git.init(repo_path)<br>
+        .map_err(git_err Error::new)<br>
+        ErrorKind::InvalidInput, git_err))
+        ");
     %% Open editor then, add, commit and push to git
 %%end
 
 %%subgraph lib rs success commit push summary
     %% Success
-    FINAL[[fn: Jot::program_opener<br>.open_editor 'repo_path/README.md' <br> .and Jot::git_add_commit_push jot_summary]];
+    FINAL[["Jot::program_opener<br>
+            .open_editor('{repo_path}/README.md')<br>
+            .and(Jot::git_add_commit_push(jot_summary)
+        "]];
 %%end
+
 
 
 %% GIT(checkout_branch in gitrs).->GIT1-.->H;
  %% git2::Repository::open(Path::new(&repo_path)).map(|repo| self.repo = Some(repo))
 %%subgraph git rs
-    GITinit(fn: Git::Repository::open repo_path<br>.map self.repo = Some repo)==>|Ok|FINAL;
+    GITinit("Git::Repository::open(repo_path)<br>
+        .map(self.repo = Some repo)")==>|"Ok"|FINAL;
     GITinit-.->|Err|HJOTgitinitrepo;
     HJOTgitinitrepo-->GITinit;
 %%end
