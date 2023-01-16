@@ -34,7 +34,7 @@ Absolute path to your repository
 ```bash
 $ jot
 >> Jot summary
-> Hello, world!
+> Hello, world
 Adding and committing you new jot to main..
 ```
 
@@ -61,18 +61,19 @@ graph TD;
 
 %% Lead to fn if config_read
 %%subgraph lib rs if cfg missing dir doesnt create dir
-    B31-->B31B(if fn: !Jot::cm.config_dir_exists)-->|is true|B3A[fn: cm.config_dir_create];
-    B3A-->B3AA(self.config_dir_path.and_then fs::create_dir_all);
-    B3AA-->B3AB(fn Jot.resolve_xdg_config_home .or_else fn: home_dir.join'.config.dot');
-    B3AB-.->|err|B3AB2(Failed to resolve $HOME dir);
-    B3AB-->|ok|B3AB1(PathBuf);
+    B31-->B31B>if: fn: Jot::cm.config_dir_exists == false]-->|is true|B3A;
+    B3A[fn: cm.config_dir_create];
+    B3A-->B3AA(self.config_dir_path<br>.and_then fs::create_dir_all);
+    B3AA-->B3AB(fn Jot.resolve_xdg_config_home<br>.or_else fn: home_dir.join'.config.dot');
+    B3AB-.->|Err|B3AB2(Failed to resolve $HOME dir);
+    B3AB-->|Ok|B3AB1(PathBuf);
 %%end
 
 B3AB1-->|success: created dir|B31A;
 
 %%subgraph lib rs if cfg missing config read repo loop
     B31B-->|is false|B31A;
-    B31A(if fn: Jot::cm.config_read Repo is_error)-->|is true|C;
+    B31A>if fn: Jot::cm.config_read Repo is_error]-->|is true|C;
     %% Get user input for repository path
     C[setup_repo_path]-->|fn: Jot::reader.read_input|C1(var: user_input);
     C1-->C11>if: fn: user_input.is_empty];
@@ -109,18 +110,14 @@ B3AB1-->|success: created dir|B31A;
 
 %%subgraph lib rs success commit push summary
     %% Success
-    %%FvarJotSumary-.->HSUCCESS;
-    HSUCCESS>if git init success]==>I;
-    I([fn: Jot::program_opener<br>.open_editor 'repo_path/README.md'])==>FINAL;
-    FINAL([.and Jot::git_add_commit_push jot_summary]);
-
+    FINAL[[fn: Jot::program_opener<br>.open_editor 'repo_path/README.md' <br> .and Jot::git_add_commit_push jot_summary]];
 %%end
 
 
 %% GIT(checkout_branch in gitrs).->GIT1-.->H;
  %% git2::Repository::open(Path::new(&repo_path)).map(|repo| self.repo = Some(repo))
 %%subgraph git rs
-    GITinit(fn: Git::Repository::open repo_path<br>.map _repo_ Git.repo = Some repo)==>|Ok|HSUCCESS;
+    GITinit(fn: Git::Repository::open repo_path<br>.map self.repo = Some repo)==>|Ok|FINAL;
     GITinit-.->|Err|HJOTgitinitrepo;
     HJOTgitinitrepo-->GITinit;
 %%end
@@ -134,6 +131,6 @@ B3AB1-->|success: created dir|B31A;
 
 classDef gray fill:#888,stroke:#ccc,stroke-width:2px
 classDef cyan fill:#a88,stroke:#ccc,stroke-width:2px
-class E,I,FINAL gray
-class FvarJotSumary,HRepoPath cyan
+%% class E,I,FINAL gray
+%% class FvarJotSumary,HRepoPath cyan
 ```
