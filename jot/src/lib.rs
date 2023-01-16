@@ -206,14 +206,13 @@ where
             self.printer.input_header("Absolute path to your jot repository")?;
 
             let user_input: &String = &self.reader.read_input()?;
-
             if user_input.is_empty() {
                 continue 'prompt; // next iteration.
             }
 
             let path = Path::new(user_input);
-            // Writes config to `~/.config/jot/config.json
             if path.is_absolute() {
+                // Writes config to `~/.config/jot/config.json
                 break 'prompt self.cm.config_write(Repo, path.display().to_string());
             }
 

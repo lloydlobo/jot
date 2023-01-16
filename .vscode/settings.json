@@ -1,5 +1,5 @@
 {
     "diffEditor.codeLens": true,
     "editor.tabCompletion": "on",
-    "cSpell.words": ["revparse", "struct", "termcolor", "treeish"]
+    "cSpell.words": ["miette", "revparse", "struct", "termcolor", "thiserror", "treeish"]
 }

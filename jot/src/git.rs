@@ -1,7 +1,5 @@
 use std::path::Path;
 
-use anyhow::Context;
-
 pub trait GitManagement {
     fn init(&mut self, repo_path: &str) -> Result<(), git2::Error>;
     fn checkout_branch(&mut self, branch_name: &str) -> Result<(), git2::Error>;

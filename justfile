@@ -18,6 +18,9 @@ d:
 default:
   just --list
 
+f:
+  cargo fmt
+
 # Run bin in jot/src/jot.rs
 r:
   cargo r -p jot
