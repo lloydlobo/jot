@@ -40,9 +40,22 @@ impl ProgramAccess {
     }
 }
 
+// in lib.rs `fn ask_for_jot(&mut self) -> io::Result<()> `
+// FIXME: Fix opening EDITOR `vi` or pager `less`. Avoid either to panic.
+// PERF: Directly input from stdin for now.
 impl ProgramOpener for ProgramAccess {
     fn open_editor(&self, file_path: &str) -> io::Result<()> {
-        self.open_with_fallback(file_path, "EDITOR", "vi")
+        let x = self.open_with_fallback(file_path, "EDITOR", "vi");
+        match x {
+            Ok(q) => {
+                dbg!(&q);
+                Ok(q)
+            }
+            Err(e) => {
+                dbg!(&e);
+                Err(e)
+            }
+        }
     }
 
     fn open_pager(&self, file_path: &str) -> io::Result<()> {

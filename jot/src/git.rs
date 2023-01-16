@@ -1,5 +1,7 @@
 use std::path::Path;
 
+use anyhow::Context;
+
 pub trait GitManagement {
     fn init(&mut self, repo_path: &str) -> Result<(), git2::Error>;
     fn checkout_branch(&mut self, branch_name: &str) -> Result<(), git2::Error>;
@@ -15,8 +17,32 @@ pub struct Git {
 }
 
 impl GitManagement for Git {
+    /// Attempts to open an already-existing repository at `repo_path`.
+    ///
+    /// The path can point to either a normal or bare repository.
+    ///
+    /// # Panics
+    ///
+    /// Panics if fails to open git repository with Error `code: -3`, `class: 2`, `message: "failed
+    /// to resolve path '$HOME/path/to/jot/repo': No such file or directory`.
     fn init(&mut self, repo_path: &str) -> Result<(), git2::Error> {
-        git2::Repository::open(Path::new(&repo_path)).map(|repo| self.repo = Some(repo))
+        let path: &Path = Path::new(&repo_path); // Directly wraps a string slice as a `Path` slice.
+        let repository = git2::Repository::open(path);
+        dbg!(&repository?.path());
+
+        let path: &Path = Path::new(&repo_path); // Directly wraps a string slice as a `Path` slice.
+        let repository = git2::Repository::open(path);
+        match repository {
+            Ok(repo) => {
+                dbg!(&repo.path());
+                self.repo = Some(repo);
+                Ok(())
+            }
+            Err(err) => Err(err),
+        }
+
+        // Owned git repository, of all state associated with the underlying filesystem.
+        // repository.map(|repo| self.repo = Some(repo))
     }
 
     /// Updates files in the index and working tree to match the content of the

@@ -149,13 +149,30 @@ where
 
         let repo_path = self.cm.config_read(Repo)?;
         // We can set initialize git now as we ave the repo path
-        self.git
-            .init(&repo_path)
-            .map_err(|git_err| Error::new(ErrorKind::InvalidInput, git_err))?;
+        let init = self.git.init(&repo_path);
 
-        self.program_opener
-            .open_editor(&format!("{}/README.md", &repo_path))
-            .and(self.git_add_commit_push(jot_summary))
+        match init {
+            Ok(t) => {
+                println!("Git initialized successfully");
+                dbg!(&t);
+                Ok(t)
+            }
+            Err(e) => {
+                dbg!(&e);
+                Err(Error::new(ErrorKind::InvalidInput, e))
+            }
+        }
+        .expect("Git init failed");
+
+        // in program_access.rs `fn open_editor(&self, file_path: &str) -> io::Result<()> `
+        // FIXME: Fix opening EDITOR `vi` or pager `less`. Avoid either to panic.
+        // PERF: Directly input from stdin for now.
+        // TODO: Uncomment me after fixing the above editor pager issues
+        // self.program_opener
+        //     .open_editor(&format!("{}/README.md", &repo_path))
+        //     .and(self.git_add_commit_push(jot_summary))
+
+        Ok(())
     }
 
     fn git_add_commit_push(&mut self, commit_subject: String) -> io::Result<()> {
