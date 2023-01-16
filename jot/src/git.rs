@@ -15,7 +15,6 @@ pub struct Git {
 }
 
 impl GitManagement for Git {
-    // TODO: Git::init();
     fn init(&mut self, repo_path: &str) -> Result<(), git2::Error> {
         git2::Repository::open(Path::new(&repo_path)).map(|repo| self.repo = Some(repo))
     }
