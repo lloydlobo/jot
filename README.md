@@ -132,8 +132,8 @@ B3AB1-->|success: created dir|B31A;
     PRINT(fn: Printer::println_styled)-.->PRINT1(fn: Printer::writer.flush);
 %%end
 
-classDef gray fill:#ccc,stroke:#ccc,stroke-width:2px
-classDef cyan fill:#7bb,stroke:#ccc,stroke-width:2px
+classDef gray fill:#888,stroke:#ccc,stroke-width:2px
+classDef cyan fill:#a88,stroke:#ccc,stroke-width:2px
 class E,I,FINAL gray
 class FvarJotSumary,HRepoPath cyan
 ```
