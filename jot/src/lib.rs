@@ -34,6 +34,7 @@ extern crate log;
 extern crate core;
 
 pub mod config_manager;
+pub mod error;
 pub mod git;
 pub mod printer;
 pub mod program_access;
@@ -153,29 +154,15 @@ where
 
     fn ask_for_jot(&mut self) -> io::Result<()> {
         let mut jot_summary = String::new();
-
         while jot_summary.is_empty() {
             self.printer.input_header(">> Jot summary")?;
             jot_summary = self.reader.read_input()?;
         }
 
-        let repo_path = self.cm.config_read(Repo)?;
-        // We can set initialize git now as we ave the repo path
-        let init = self.git.init(&repo_path);
+        let repo_path: String = self.cm.config_read(Repo)?;
 
-        match init {
-            Ok(t) => {
-                println!("Git initialized successfully");
-                dbg!(&t);
-                Ok(t)
-            }
-            Err(e) => {
-                dbg!(&e);
-                Err(Error::new(ErrorKind::InvalidInput, e))
-            }
-        }
-        .expect("Git init failed");
-
+        // We can set initialize git now as we have the repo path
+        self.git.init(&repo_path).expect("Should init git repository");
         self.program_opener
             .open_editor(&format!("{}/README.md", &repo_path))
             .and(self.git_add_commit_push(jot_summary))?;
@@ -184,7 +171,7 @@ where
     }
 
     fn git_add_commit_push(&mut self, commit_subject: String) -> io::Result<()> {
-        let branch_name = "main";
+        let branch_name: &str = "main";
 
         self.printer
             .println(&format!("Adding and committing you new jot to {}..", &branch_name))?;

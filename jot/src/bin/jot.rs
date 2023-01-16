@@ -15,6 +15,7 @@ use clap::{
 };
 use jot::{
     config_manager::ConfigManager,
+    error::pretend_this_is_main,
     git::Git,
     printer::Printer,
     program_access::ProgramAccess,
@@ -29,6 +30,7 @@ const ARG_VIEW: &str = "view";
 
 fn main() -> anyhow::Result<()> {
     pretty_env_logger::init();
+    pretend_this_is_main().unwrap();
 
     let cli_flags: ArgMatches = Command::new("jot")
         .author(crate_authors!())
