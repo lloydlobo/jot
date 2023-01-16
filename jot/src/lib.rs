@@ -164,7 +164,7 @@ where
         self.printer
             .println(&format!("Adding and committing you new jot to {}..", &branch_name))?;
         self.git
-            .checkout_branch(branch_name) // TODO: Git::init() implemented?
+            .checkout_branch(branch_name)
             .and_then(|_| self.git.add())
             .and_then(|_| self.git.commit(commit_subject.as_str()))
             .map_err(|err| io::Error::new(ErrorKind::Other, err))?;
