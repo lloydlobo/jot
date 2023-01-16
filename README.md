@@ -6,7 +6,20 @@ Version control your jots efficiently with git and github(optional).
 
 A fork of [eureka](https://github.com/simeg/eureka).
 
+## TODO
+
+-   [ ] Directly input from stdin or use `less`.
+-   [x] Fix opening EDITOR `vi` or pager `less`. Avoid either to panic.
+-   [x] README.md doesn't exist in path. \* `thread 'main' panicked at 'The file you are trying to open does not exist;   /home/username/path/to/jot/README.md', jot/src/program_access.rs:33:13`
+-   [x] Fix the editor pager issues.
+
+## Future PERF
+
+-   Automatically create README.md in jot repo
+
 ## Setup
+
+You'll have to manually create a `README.md` file in your desired git initialized repo.
 
 ### Path
 

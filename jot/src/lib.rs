@@ -16,6 +16,18 @@
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::missing_docs_in_private_items)]
 
+// TODO: >> Jot summary
+/* >> Jot summary
+> hello
+[jot/src/git.rs:31] &repository?.path() = "/.../jot/.git/"
+[jot/src/git.rs:37] &repo.path() = "/.../jot/.git/"
+Git initialized successfully
+[jot/src/lib.rs:157] &t = ()
+Adding and committing you new jot to main..
+ ERROR jot > reference 'refs/heads/main' not found; class=Reference (4); code=UnbornBranch (-9)
+Error: reference 'refs/heads/main' not found; class=Reference (4); code=UnbornBranch (-9)
+error: Recipe `rtrace` failed on line 27 with exit code 1 */
+
 extern crate dirs;
 #[macro_use]
 extern crate log;
@@ -135,7 +147,7 @@ where
         self.cm.config_rm()
     }
 
-    pub(crate) fn open_jot_file(&self) -> io::Result<()> {
+    fn open_jot_file(&self) -> io::Result<()> {
         self.program_opener.open_pager(&format!("{}/README.md", self.cm.config_read(Repo)?))
     }
 
@@ -164,13 +176,9 @@ where
         }
         .expect("Git init failed");
 
-        // in program_access.rs `fn open_editor(&self, file_path: &str) -> io::Result<()> `
-        // FIXME: Fix opening EDITOR `vi` or pager `less`. Avoid either to panic.
-        // PERF: Directly input from stdin for now.
-        // TODO: Uncomment me after fixing the above editor pager issues
-        // self.program_opener
-        //     .open_editor(&format!("{}/README.md", &repo_path))
-        //     .and(self.git_add_commit_push(jot_summary))
+        self.program_opener
+            .open_editor(&format!("{}/README.md", &repo_path))
+            .and(self.git_add_commit_push(jot_summary))?;
 
         Ok(())
     }

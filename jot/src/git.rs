@@ -81,7 +81,11 @@ impl GitManagement for Git {
     }
 
     fn add(&mut self) -> Result<(), git2::Error> {
-        todo!()
+        let mut index: git2::Index =
+            self.repo.as_ref().expect("The repository is not initialized.").index()?;
+
+        index.add_path(Path::new("README.md"))?;
+        index.write()
     }
 
     fn commit(&mut self, subject: &str) -> Result<(), git2::Error> {
