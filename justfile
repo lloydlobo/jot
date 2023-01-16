@@ -22,6 +22,10 @@ default:
 r:
   cargo r -p jot
 
+# Run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+rtrace:
+  RUSTBACKTRACE=1 cargo r -p jot
+
 # Test lib jot
 t:
   cargo test -p jot

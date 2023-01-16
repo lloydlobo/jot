@@ -148,6 +148,10 @@ where
         }
 
         let repo_path = self.cm.config_read(Repo)?;
+        // We can set initialize git now as we ave the repo path
+        self.git
+            .init(&repo_path)
+            .map_err(|git_err| Error::new(ErrorKind::InvalidInput, git_err))?;
 
         self.program_opener
             .open_editor(&format!("{}/README.md", &repo_path))
@@ -160,7 +164,7 @@ where
         self.printer
             .println(&format!("Adding and committing you new jot to {}..", &branch_name))?;
         self.git
-            .checkout_branch(branch_name)
+            .checkout_branch(branch_name) // TODO: Git::init() implemented?
             .and_then(|_| self.git.add())
             .and_then(|_| self.git.commit(commit_subject.as_str()))
             .map_err(|err| io::Error::new(ErrorKind::Other, err))?;
